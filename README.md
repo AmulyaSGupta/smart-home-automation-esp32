@@ -56,7 +56,7 @@ ESP32 has been used for simulation due to tool constraints, while the design rem
 ---
 
 ## 🔗 Simulation Link
-[(Add your Wokwi project link here)](https://wokwi.com/projects/461738855480130561)
+https://wokwi.com/projects/461738855480130561
 
 ---
 
