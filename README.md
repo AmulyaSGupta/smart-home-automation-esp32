@@ -24,18 +24,6 @@ It follows an event-driven embedded system approach where inputs are continuousl
 
 ---
 
-## 📂 Project Structure
-├── SmartHome_Automation.ino.txt → Source Code
-├── SmartHome_Report.docx → Project Report
-├── Flowchart.png → System Flowchart
-├── Circuit_Diagram.png → Circuit Design
-├── Output_SS1.png → Output Screenshot 1
-├── output_SS2.png → Output Screenshot 2
-├── output_SS3.png → Output Screenshot 3
-├── output_SS4.png → Output Screenshot 4
-
----
-
 ## 🚀 Working Principle
 The system continuously reads sensor inputs and processes them using ESP32:
 
@@ -68,7 +56,7 @@ ESP32 has been used for simulation due to tool constraints, while the design rem
 ---
 
 ## 🔗 Simulation Link
-(Add your Wokwi project link here)
+[(Add your Wokwi project link here)](https://wokwi.com/projects/461738855480130561)
 
 ---
 
