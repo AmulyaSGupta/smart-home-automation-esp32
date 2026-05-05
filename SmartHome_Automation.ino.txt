@@ -1,0 +1,133 @@
+#include <ESP32Servo.h>
+Servo doorServo;
+
+// ---------------- PIN DEFINITIONS ----------------
+#define LDR_PIN 34
+#define TEMP_PIN 35
+#define MOTION_PIN 25
+#define MODE_PIN 26
+#define DOOR_PIN 27
+
+#define LIGHT_LED 18
+#define SECURITY_LED 19
+#define BUZZER 23
+#define SERVO_PIN 21
+
+// ---------------- GLOBAL VARIABLES ----------------
+
+bool securityMode = false;
+bool lastModeState = HIGH;
+bool doorOpen = false;
+
+unsigned long previousMillis = 0;
+unsigned long doorTimer = 0;
+
+const int tempThreshold = 2000;   // adjust in simulation
+const int lightThreshold = 0;     // digital (LDR DO)
+
+// ---------------- SETUP ----------------
+void setup() {
+  ESP32PWM::allocateTimer(0);
+  ESP32PWM::allocateTimer(1);
+  ESP32PWM::allocateTimer(2);
+  ESP32PWM::allocateTimer(3);
+  Serial.begin(115200);
+
+  pinMode(LDR_PIN, INPUT);
+  pinMode(TEMP_PIN, INPUT);
+  pinMode(MOTION_PIN, INPUT_PULLUP);
+  pinMode(MODE_PIN, INPUT_PULLUP);
+  pinMode(DOOR_PIN, INPUT_PULLUP);
+
+  pinMode(LIGHT_LED, OUTPUT);
+  pinMode(SECURITY_LED, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
+
+  doorServo.attach(SERVO_PIN);
+  doorServo.write(0); // closed
+
+  Serial.println("System Initialized");
+}
+
+// ---------------- MAIN LOOP ----------------
+void loop() {
+  handleModeSwitch();
+  handleLighting();
+  handleTemperature();
+  handleSecurity();
+  handleDoor();
+}
+
+// ---------------- MODE SWITCH ----------------
+void handleModeSwitch() {
+  bool currentState = digitalRead(MODE_PIN);
+
+  if (lastModeState == HIGH && currentState == LOW) {
+    securityMode = !securityMode;
+    Serial.print("Mode Changed: ");
+    Serial.println(securityMode ? "SECURITY MODE" : "NORMAL MODE");
+    delay(200); // debounce
+  }
+  lastModeState = currentState;
+}
+
+// ---------------- LIGHT CONTROL ----------------
+void handleLighting() {
+  int lightValue = digitalRead(LDR_PIN);
+
+  if (lightValue == LOW) { // dark
+    digitalWrite(LIGHT_LED, HIGH);
+    Serial.println("Light ON (Dark detected)");
+  } else {
+    digitalWrite(LIGHT_LED, LOW);
+  }
+}
+
+// ---------------- TEMPERATURE CONTROL ----------------
+void handleTemperature() {
+  int tempValue = analogRead(TEMP_PIN);
+
+  Serial.print("Temperature Value: ");
+  Serial.println(tempValue);
+
+  if (tempValue > tempThreshold) {
+    digitalWrite(BUZZER, HIGH);
+    Serial.println("High Temp → Cooling ON");
+  } else {
+    digitalWrite(BUZZER, LOW);
+  }
+}
+
+// ---------------- SECURITY SYSTEM ----------------
+void handleSecurity() {
+  int motion = digitalRead(MOTION_PIN);
+
+  if (securityMode && motion == LOW) {
+    digitalWrite(SECURITY_LED, HIGH);
+    if (!securityMode) {
+  digitalWrite(BUZZER, HIGH);
+}
+    Serial.println("⚠️ INTRUSION DETECTED!");
+  } else {
+    digitalWrite(SECURITY_LED, LOW);
+  }
+}
+
+// ---------------- DOOR CONTROL ----------------
+void handleDoor() {
+  int doorButton = digitalRead(DOOR_PIN);
+
+  if (doorButton == LOW && !doorOpen) {
+    Serial.println("Door Opening...");
+    doorServo.write(90);
+    doorOpen = true;
+    doorTimer = millis();
+  }
+
+  // Auto close after 3 seconds (NON-BLOCKING)
+  if (doorOpen && millis() - doorTimer >= 3000) {
+    Serial.println("Door Closing...");
+    doorServo.write(0);
+    doorOpen = false;
+  }
+}
